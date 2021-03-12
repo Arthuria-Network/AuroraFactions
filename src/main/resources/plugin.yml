@@ -1,0 +1,70 @@
+name: AuroraFactions
+version: @version@
+main: me.tropicalshadow.aurorafactions.AuroraFactions
+api-version: 1.16
+authors: [ TropicalShadow ]
+depend: [DiscordSRV]
+description: Aurora Teams plugin
+commands:
+  plugins:
+    description: "The Reason Plugins List"
+    permission: aurorafactions.plugins
+    aliases:
+      - pl
+  factions:
+    description: "Displays a GUI for players to select their faction colour"
+    permission: aurorafactions.factions
+  powercrystal:
+    description: "allows player to give themselves a powercrystal"
+    permission: aurorafactions.powercrystal.give
+  faction:
+    description: "root faction command"
+    permission: aurorafactions.faction
+  manaitem:
+    description: "gives mana Item"
+    permission: aurorafactions.manaitems.give
+  resourcepack:
+    description: "dealing with resourcepack"
+    permission: aurorafactions.resourcepack
+permissions:
+  aurorafactions.factions.op:
+    default: op
+    children:
+      - aurorafactions.faction
+      - aurorafactions.factions
+      - aurorafactions.powercrystal.give
+      - aurorafactions.powercrystal.place.*
+      - aurorafactions.factionchatoverride
+      - aurorafactions.resourcepack
+      - aurorafactions.manaitems.give
+      - aurorafactions.plugins
+  aurorafactions.factionchatoverride:
+    default: op
+    description: "see faction chat of all colours"
+  aurorafactions.manaitems.give:
+    default: op
+  aurorafactions.powercrystal.give:
+    default: op
+  aurorafactions.pwoercrystal.place.*:
+    default: op
+    children:
+      - aurorafactions.pwoercrystal.place.blue
+      - aurorafactions.pwoercrystal.place.red
+      - aurorafactions.pwoercrystal.place.green
+      - aurorafactions.pwoercrystal.place.yellow
+  aurorafactions.pwoercrystal.place.blue:
+    default: op
+  aurorafactions.pwoercrystal.place.red:
+    default: op
+  aurorafactions.pwoercrystal.place.yellow:
+    default: op
+  aurorafactions.pwoercrystal.place.green:
+    default: op
+  aurorafactions.resourcepack:
+    default: true
+  aurorafactions.factions:
+    default: true
+  aurorafactions.faction:
+    default: true
+  aurorafactions.plugins:
+    default: true
