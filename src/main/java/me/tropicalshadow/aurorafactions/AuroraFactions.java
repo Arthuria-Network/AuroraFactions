@@ -46,7 +46,7 @@ public final class AuroraFactions extends JavaPlugin {
         return perms;
     }
 
-    private static final GameState gameState = GameState.NON;
+    private static GameState gameState = GameState.NON;
 
     @Override
     public void onEnable() {
@@ -54,7 +54,7 @@ public final class AuroraFactions extends JavaPlugin {
         ConfigurationSerialization.registerClass(Mana.class);
 
         fileManager = new FileManager();
-        checkGameState();
+        gameState = checkGameState();
         channelManger = new ChannelManger();
         chatChannel = new ChatChannel();
         guiListener = new GuiListener();
@@ -84,6 +84,7 @@ public final class AuroraFactions extends JavaPlugin {
             ppapitags.register();
         }
         Mana.setPlayers();
+        Logging.info("Game State has been set to "+gameState.getName());
     }
 
     public GameState checkGameState(){

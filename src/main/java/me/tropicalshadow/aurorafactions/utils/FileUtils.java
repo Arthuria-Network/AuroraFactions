@@ -15,7 +15,7 @@ public class FileUtils {
 
 
     public static Map<UUID,Mana> getOnlinePlayers() {
-        if(!AuroraFactions.getPlugin().getDataFolder().exists())AuroraFactions.getPlugin().getDataFolder().mkdirs();
+        if(!AuroraFactions.getPlugin().getDataFolder().exists())AuroraFactions.getPlugin().getDataFolder().mkdir();
         File file = new File(AuroraFactions.getPlugin().getDataFolder(),"playerdata.yml");
         try {
             if (!file.exists()){
@@ -44,8 +44,45 @@ public class FileUtils {
         return output;
     }
 
+    public static void saveUnlocks(Map<FactionColours,Integer> vals){
+        if(!AuroraFactions.getPlugin().getDataFolder().exists())AuroraFactions.getPlugin().getDataFolder().mkdir();
+        File file = new File(AuroraFactions.getPlugin().getDataFolder(),"factions.yml");
+        try{
+            if(!file.exists()){
+                AuroraFactions.getPlugin().saveResource("factions.yml",true);
+            }
+            YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+            for (FactionColours value : vals.keySet()) {
+                if(value!=FactionColours.NON){
+                    yaml.set(value.name().toLowerCase(),vals.get(value));
+                }
+            }
+            yaml.save(file);
+        }catch(Exception e){}
+
+
+    }
+
+    public static Map<FactionColours,Integer> getUnlocks(){
+        if(!AuroraFactions.getPlugin().getDataFolder().exists())AuroraFactions.getPlugin().getDataFolder().mkdir();
+        File file = new File(AuroraFactions.getPlugin().getDataFolder(),"factions.yml");
+        try{
+            if(!file.exists()){
+                AuroraFactions.getPlugin().saveResource("factions.yml",true);
+            }
+        }catch(Exception e){}
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        Map<FactionColours, Integer> output = new HashMap<>();
+        for (FactionColours value : FactionColours.values()) {
+            if(value!=FactionColours.NON){
+                output.put(value,yaml.getInt(value.name().toLowerCase(),0));
+            }
+        }
+        return output;
+    }
+
     public static Mana getManaForPlayer(Player player) {
-        if(!AuroraFactions.getPlugin().getDataFolder().exists())AuroraFactions.getPlugin().getDataFolder().mkdirs();
+        if(!AuroraFactions.getPlugin().getDataFolder().exists())AuroraFactions.getPlugin().getDataFolder().mkdir();
         File file = new File(AuroraFactions.getPlugin().getDataFolder(),"playerdata.yml");
         try {
             if (!file.exists()){
@@ -69,7 +106,7 @@ public class FileUtils {
     }
 
     public static void addPlayerToFile(Player player){
-        if(!AuroraFactions.getPlugin().getDataFolder().exists())AuroraFactions.getPlugin().getDataFolder().mkdirs();
+        if(!AuroraFactions.getPlugin().getDataFolder().exists())AuroraFactions.getPlugin().getDataFolder().mkdir();
         File file = new File(AuroraFactions.getPlugin().getDataFolder(),"playerdata.yml");
         try {
             if (!file.exists()){
@@ -89,7 +126,7 @@ public class FileUtils {
 
     }
     public static void addPlayerToFile(Mana mana){
-        if(!AuroraFactions.getPlugin().getDataFolder().exists())AuroraFactions.getPlugin().getDataFolder().mkdirs();
+        if(!AuroraFactions.getPlugin().getDataFolder().exists())AuroraFactions.getPlugin().getDataFolder().mkdir();
         File file = new File(AuroraFactions.getPlugin().getDataFolder(),"playerdata.yml");
         try {
             if (!file.exists()){

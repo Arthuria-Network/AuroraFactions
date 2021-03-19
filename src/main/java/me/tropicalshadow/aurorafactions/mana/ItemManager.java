@@ -32,13 +32,18 @@ public class ItemManager implements Listener {
         playerIdentifier = new NamespacedKey(AuroraFactions.getPlugin(),"PlayerIdentifier");
     }
 
+    private void sendCostFailure(Player player){
+        player.sendMessage(ChatColor.RED+"You don't have enough mana to use this");
+    }
+    
     @EventHandler()
     public void onClick(PlayerInteractEvent event){
         Action action = event.getAction();
         if(event.getItem()==null)return;
         if((action.equals(Action.LEFT_CLICK_AIR) || action.equals(Action.LEFT_CLICK_BLOCK))&& !event.getPlayer().getGameMode().equals(GameMode.SPECTATOR) ){
+            Player player = event.getPlayer();
             if(ManaItem.isManaItem(event.getItem(),ManaItem.FIRESTAFF)){
-                Player player = event.getPlayer();
+                if(Mana.getPlayer(player).changeUse(-ManaItem.FIRESTAFF.getCost()) == -1){ sendCostFailure(player);return;}
 
                 Location loc = player.getEyeLocation();
                 World world = player.getWorld();
@@ -52,7 +57,7 @@ public class ItemManager implements Listener {
                 });
                 event.setCancelled(true);
             }else if(ManaItem.isManaItem(event.getItem(),ManaItem.ICESTAFF)){
-                Player player = event.getPlayer();
+                if(Mana.getPlayer(player).changeUse(-ManaItem.ICESTAFF.getCost()) == -1){ sendCostFailure(player);return;}
                 Location loc = player.getEyeLocation();
                 World world = player.getWorld();
                 FallingBlock falling = world.spawnFallingBlock(loc.add(loc.getDirection()), Material.BLUE_ICE.createBlockData());
@@ -75,7 +80,7 @@ public class ItemManager implements Listener {
 
                 event.setCancelled(true);
             }else if(ManaItem.isManaItem(event.getItem(),ManaItem.POISONSTAFF)){
-                Player player = event.getPlayer();
+                if(Mana.getPlayer(player).changeUse(-ManaItem.POISONSTAFF.getCost()) == -1){ sendCostFailure(player);return;}
                 Location loc = player.getEyeLocation();
                 World world = player.getWorld();
                 FallingBlock falling = world.spawnFallingBlock(loc.add(loc.getDirection()), Material.NETHER_WART_BLOCK.createBlockData());
@@ -90,7 +95,7 @@ public class ItemManager implements Listener {
                 event.setCancelled(true);
 
             }else if(ManaItem.isManaItem(event.getItem(),ManaItem.ARCHERSTAFF)){
-                Player player = event.getPlayer();
+                if(Mana.getPlayer(player).changeUse(-ManaItem.ARCHERSTAFF.getCost()) == -1){ sendCostFailure(player);return;}
                 Location loc = player.getEyeLocation();
                 event.setCancelled(true);
                 Bukkit.getScheduler().runTask(AuroraFactions.getPlugin(),()->{
@@ -162,19 +167,21 @@ public class ItemManager implements Listener {
         }
     }
     public enum ManaItem{
-        FIRESTAFF("Fire Staff",new FireStaff(), FactionColours.RED),
-        ICESTAFF("Ice Staff", new IceStaff(),FactionColours.BLUE),
-        POISONSTAFF("Poison Staff", new PoisonStaff(),FactionColours.GREEN),
-        ARCHERSTAFF("Archer Saff",new ArcherStaff(),FactionColours.YELLOW);
+        FIRESTAFF("Fire Staff",new FireStaff(), FactionColours.RED,100),
+        ICESTAFF("Ice Staff", new IceStaff(),FactionColours.BLUE,100),
+        POISONSTAFF("Poison Staff", new PoisonStaff(),FactionColours.GREEN,100),
+        ARCHERSTAFF("Archer Saff",new ArcherStaff(),FactionColours.YELLOW,100);
 
         private final String friendlyName;
         private final ManaItemBase item;
         private final FactionColours colour;
+        private final int cost;
 
-        ManaItem(String friendlyName, ManaItemBase item, FactionColours colour){
+        ManaItem(String friendlyName, ManaItemBase item, FactionColours colour,int cost){
             this.friendlyName = friendlyName;
             this.item = item;
             this.colour = colour;
+            this.cost = cost;
         }
         public ItemStack getItem(){
             return this.item.getItem();
@@ -182,6 +189,7 @@ public class ItemManager implements Listener {
         public String getFriendlyName(){
             return this.friendlyName;
         }
+        public int getCost(){return this.cost;}
 
         public FactionColours getColour() {
             return this.colour;

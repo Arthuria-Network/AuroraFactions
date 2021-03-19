@@ -5,7 +5,8 @@ import org.bukkit.GameMode;
 public enum GameState {
     NON(0,"Null"),
     BEFORE(1,"Before"),
-    WAR(2,"War");
+    WAR(2,"War"),
+    WINNER(3,"Winner");
 
 
     private final int id;

@@ -1,6 +1,7 @@
 package me.tropicalshadow.aurorafactions;
 
 import me.tropicalshadow.aurorafactions.gui.ChestGui;
+import me.tropicalshadow.aurorafactions.listener.FactionAbillites;
 import me.tropicalshadow.aurorafactions.mana.ItemManager;
 import me.tropicalshadow.aurorafactions.utils.FactionColours;
 import me.tropicalshadow.aurorafactions.utils.ItemUtils;
@@ -156,8 +157,7 @@ public class CommandSimper implements TabExecutor, Listener {
             }
             if(args[0].equalsIgnoreCase("chat")){
                 AuroraFactions.getPlugin().getChannelManger().toggleChat(player);
-            }
-            if(args[0].equalsIgnoreCase("kick")&&player.hasPermission("aurorafactions.kick")){
+            }else if(args[0].equalsIgnoreCase("kick")&&player.hasPermission("aurorafactions.kick")){
                 FactionColours colour = PermissionUtils.getFactionColour(player);
                 boolean isLeader = PermissionUtils.isMemberLeader(player,colour);
                 if(!isLeader){
@@ -187,6 +187,8 @@ public class CommandSimper implements TabExecutor, Listener {
                         index++;
                     }
                 }
+            }else if(args[0].equalsIgnoreCase("unlocks")){
+                FactionAbillites.sendUnlockScreen(player);
             }
         }else if(isPlayer && cmd.equalsIgnoreCase("resourcepack")){
             Player player = ((Player)sender);

@@ -1,6 +1,9 @@
 package me.tropicalshadow.aurorafactions.mana;
 
+import me.tropicalshadow.aurorafactions.AuroraFactions;
 import me.tropicalshadow.aurorafactions.utils.FileUtils;
+import me.tropicalshadow.aurorafactions.utils.Logging;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -8,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Mana implements ConfigurationSerializable {
 
@@ -37,6 +42,7 @@ public class Mana implements ConfigurationSerializable {
         Players.remove(player.getUniqueId());
     }
 
+    private final Lock queueLock = new ReentrantLock();
     public UUID playerID;
     public int use;
     public int max;
@@ -66,6 +72,19 @@ public class Mana implements ConfigurationSerializable {
     }
 
     public int getUse() {
+        return use;
+    }
+
+    public int changeUse(int delta){
+        queueLock.lock();
+        int localUse = getUse();
+        if(((localUse+delta)>getMax()) || ((localUse+delta)<0)){
+            queueLock.unlock();
+            return -1;
+        }
+        use = localUse+delta;
+        DisplayMana.sendManaTitleToPlayer(Bukkit.getPlayer(getPlayerID()),getUse(),getMax());
+        queueLock.unlock();
         return use;
     }
 

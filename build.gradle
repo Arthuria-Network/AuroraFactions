@@ -21,6 +21,9 @@ repositories {
         name = 'sonatype'
         url = 'https://oss.sonatype.org/content/groups/public/'
     }
+    maven {
+        url 'https://papermc.io/repo/repository/maven-public/'
+    }
     maven { url 'https://nexus.scarsz.me/content/groups/public/' }
     maven {
         url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
@@ -33,7 +36,7 @@ repositories {
 
 dependencies {
     implementation 'dev.vankka:MCDiscordReserializer:3.0.1'
-    compileOnly 'org.spigotmc:spigot-api:1.16.4-R0.1-SNAPSHOT'
+    compileOnly 'com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT'
     compileOnly 'dev.vankka:MCDiscordReserializer:3.0.1'
     compileOnly 'me.clip:placeholderapi:2.10.9'
     compileOnly 'com.discordsrv:discordsrv:1.21.1'
