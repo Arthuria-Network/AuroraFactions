@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Claims {
-
+    //TODO - Check faction and stop interaction if you are not member
     private static AuroraFactions plugin;
     private final List<Claim> factionClaims = new ArrayList<>();
     public static NamespacedKey adminWandKey = null;
