@@ -81,7 +81,7 @@ public final class AuroraFactions extends JavaPlugin {
 
         checkForDiscordSrvThenSubscribe();
 
-        registerCommands("factions","faction","powercrystal","manaitem","plugins","resourcepack");
+        registerCommands("factions","faction","powercrystal","manaitem","plugins","resourcepack","claim");
         if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null){
             FactionTags ppapitags = new FactionTags();
             ppapitags.register();
