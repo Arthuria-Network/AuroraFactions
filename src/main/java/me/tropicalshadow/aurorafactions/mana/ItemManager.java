@@ -26,7 +26,7 @@ import java.util.UUID;
 
 public class ItemManager implements Listener {
 
-    private static NamespacedKey playerIdentifier;
+    public static NamespacedKey playerIdentifier;
 
     public ItemManager(){
         playerIdentifier = new NamespacedKey(AuroraFactions.getPlugin(),"PlayerIdentifier");
@@ -42,71 +42,11 @@ public class ItemManager implements Listener {
         if(event.getItem()==null)return;
         if((action.equals(Action.LEFT_CLICK_AIR) || action.equals(Action.LEFT_CLICK_BLOCK))&& !event.getPlayer().getGameMode().equals(GameMode.SPECTATOR) ){
             Player player = event.getPlayer();
-            if(ManaItem.isManaItem(event.getItem(),ManaItem.FIRESTAFF)){
-                if(Mana.getPlayer(player).changeUse(-ManaItem.FIRESTAFF.getCost()) == -1){ sendCostFailure(player);return;}
-
-                Location loc = player.getEyeLocation();
-                World world = player.getWorld();
-                loc.getDirection();
-                world.spawn(loc.add(loc.getDirection()), Fireball.class,(e)->{
-                    e.setDirection(loc.getDirection());
-                    e.setGlowing(true);
-                    e.setIsIncendiary(true);
-                    e.setYield(0);
-                    e.setShooter(player);
-                });
-                event.setCancelled(true);
-            }else if(ManaItem.isManaItem(event.getItem(),ManaItem.ICESTAFF)){
-                if(Mana.getPlayer(player).changeUse(-ManaItem.ICESTAFF.getCost()) == -1){ sendCostFailure(player);return;}
-                Location loc = player.getEyeLocation();
-                World world = player.getWorld();
-                FallingBlock falling = world.spawnFallingBlock(loc.add(loc.getDirection()), Material.BLUE_ICE.createBlockData());
-                falling.setGravity(true);
-                falling.setGlowing(true);
-                falling.setInvulnerable(true);
-                falling.setDropItem(false);
-                falling.setPersistent(false);
-                falling.setVelocity(loc.getDirection().multiply(2));
-                falling.getPersistentDataContainer().set(playerIdentifier, PersistentDataType.STRING,player.getUniqueId().toString());
-
-                //Fireball project = world.spawn(loc.add(loc.getDirection()).add(0,1,0), Fireball.class,(e)->{
-                    //e.setDirection(loc.getDirection());
-                    //e.setIsIncendiary(false);
-                    //e.setFireTicks(0);
-                    //e.setYield(0);
-                    //e.setShooter(player);
-                    //e.addPassenger(falling);
-                //});
-
-                event.setCancelled(true);
-            }else if(ManaItem.isManaItem(event.getItem(),ManaItem.POISONSTAFF)){
-                if(Mana.getPlayer(player).changeUse(-ManaItem.POISONSTAFF.getCost()) == -1){ sendCostFailure(player);return;}
-                Location loc = player.getEyeLocation();
-                World world = player.getWorld();
-                FallingBlock falling = world.spawnFallingBlock(loc.add(loc.getDirection()), Material.NETHER_WART_BLOCK.createBlockData());
-                falling.setGravity(true);
-                falling.setGlowing(true);
-                falling.setInvulnerable(true);
-                falling.setDropItem(false);
-                falling.setPersistent(false);
-                falling.setVelocity(loc.getDirection().multiply(2));
-                falling.getPersistentDataContainer().set(playerIdentifier, PersistentDataType.STRING,player.getUniqueId().toString());
-
-                event.setCancelled(true);
-
-            }else if(ManaItem.isManaItem(event.getItem(),ManaItem.ARCHERSTAFF)){
-                if(Mana.getPlayer(player).changeUse(-ManaItem.ARCHERSTAFF.getCost()) == -1){ sendCostFailure(player);return;}
-                Location loc = player.getEyeLocation();
-                event.setCancelled(true);
-                Bukkit.getScheduler().runTask(AuroraFactions.getPlugin(),()->{
-                    for(int i=-2;i<=2;i++){
-                        for(int k=-2;k<=2;k++) {
-                            SpectralArrow arrow = player.launchProjectile(SpectralArrow.class, loc.getDirection().add(new Vector(i,0,k)));//multiply instead?
-                            arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
-                        }
-                    }
-                });
-            }
+            ManaItem manaItem = ManaItem.isItem(event.getItem());
+            if(manaItem == null)return;
+            if(Mana.getPlayer(player).changeUse(-manaItem.getCost()) == -1){ sendCostFailure(player);return;}
+            manaItem.item.execute(player);
+            event.setCancelled(true);
         }
     }
 
@@ -167,6 +107,7 @@ public class ItemManager implements Listener {
         }
     }
     public enum ManaItem{
+        MANAPOOL("Mana Pool",new ManaPool(),FactionColours.NON,0),
         FIRESTAFF("Fire Staff",new FireStaff(), FactionColours.RED,100),
         ICESTAFF("Ice Staff", new IceStaff(),FactionColours.BLUE,100),
         POISONSTAFF("Poison Staff", new PoisonStaff(),FactionColours.GREEN,100),

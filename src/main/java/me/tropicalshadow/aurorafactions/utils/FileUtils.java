@@ -54,7 +54,7 @@ public class FileUtils {
             YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
             for (FactionColours value : vals.keySet()) {
                 if(value!=FactionColours.NON){
-                    yaml.set(value.name().toLowerCase(),vals.get(value));
+                    yaml.set(value.name().toLowerCase()+".unlocks",vals.get(value));
                 }
             }
             yaml.save(file);
@@ -75,7 +75,7 @@ public class FileUtils {
         Map<FactionColours, Integer> output = new HashMap<>();
         for (FactionColours value : FactionColours.values()) {
             if(value!=FactionColours.NON){
-                output.put(value,yaml.getInt(value.name().toLowerCase(),0));
+                output.put(value,yaml.getInt(value.name().toLowerCase()+".unlocks",0));
             }
         }
         return output;

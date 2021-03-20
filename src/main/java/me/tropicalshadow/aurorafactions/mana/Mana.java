@@ -76,6 +76,10 @@ public class Mana implements ConfigurationSerializable {
     }
 
     public int changeUse(int delta){
+        if(Bukkit.getPlayer(getPlayerID()).hasPermission("aurorafactions.infmana")){
+            use = max;
+            return max;
+        }
         queueLock.lock();
         int localUse = getUse();
         if(((localUse+delta)>getMax()) || ((localUse+delta)<0)){
@@ -83,8 +87,8 @@ public class Mana implements ConfigurationSerializable {
             return -1;
         }
         use = localUse+delta;
-        DisplayMana.sendManaTitleToPlayer(Bukkit.getPlayer(getPlayerID()),getUse(),getMax());
         queueLock.unlock();
+        DisplayMana.sendManaTitleToPlayer(Bukkit.getPlayer(getPlayerID()),getUse(),getMax());
         return use;
     }
 

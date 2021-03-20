@@ -1,13 +1,17 @@
 package me.tropicalshadow.aurorafactions.listener;
 
 import me.tropicalshadow.aurorafactions.AuroraFactions;
+import me.tropicalshadow.aurorafactions.claims.Claims;
 import me.tropicalshadow.aurorafactions.object.GameState;
+import me.tropicalshadow.aurorafactions.utils.FactionColours;
 import me.tropicalshadow.aurorafactions.utils.Logging;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 
 public class DeathEvents implements Listener {
 

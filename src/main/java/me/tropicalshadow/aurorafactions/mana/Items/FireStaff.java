@@ -1,7 +1,12 @@
 package me.tropicalshadow.aurorafactions.mana.Items;
 
+import me.tropicalshadow.aurorafactions.mana.ItemManager;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.entity.Fireball;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -24,9 +29,19 @@ public class FireStaff implements ManaItemBase{
         item.setItemMeta(meta);
         return item;
     }
+
     @Override
-    public int getCost(){
-        return 50;
+    public void execute(Player player){
+        Location loc = player.getEyeLocation();
+        World world = player.getWorld();
+        loc.getDirection();
+        world.spawn(loc.add(loc.getDirection()), Fireball.class,(e)->{
+            e.setDirection(loc.getDirection());
+            e.setGlowing(true);
+            e.setIsIncendiary(true);
+            e.setYield(0);
+            e.setShooter(player);
+        });
     }
 
     @Override

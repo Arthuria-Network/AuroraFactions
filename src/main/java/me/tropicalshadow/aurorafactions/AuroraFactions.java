@@ -2,6 +2,7 @@ package me.tropicalshadow.aurorafactions;
 
 import github.scarsz.discordsrv.DiscordSRV;
 import me.tropicalshadow.aurorafactions.NMS.Title;
+import me.tropicalshadow.aurorafactions.claims.Claims;
 import me.tropicalshadow.aurorafactions.listener.CrystalBlockEvents;
 import me.tropicalshadow.aurorafactions.listener.DeathEvents;
 import me.tropicalshadow.aurorafactions.listener.FactionAbillites;
@@ -41,6 +42,7 @@ public final class AuroraFactions extends JavaPlugin {
     private ItemManager itemManager;
     private FileManager fileManager;
     private DeathEvents deathEvents;
+    private Claims claims;
     private Title title;
     public static Permission getPermissions() {
         return perms;
@@ -55,6 +57,7 @@ public final class AuroraFactions extends JavaPlugin {
 
         fileManager = new FileManager();
         gameState = checkGameState();
+        claims = new Claims();
         channelManger = new ChannelManger();
         chatChannel = new ChatChannel();
         guiListener = new GuiListener();
@@ -84,6 +87,7 @@ public final class AuroraFactions extends JavaPlugin {
             ppapitags.register();
         }
         Mana.setPlayers();
+        claims.renderLoadedChunks();
         Logging.info("Game State has been set to "+gameState.getName());
     }
 
@@ -117,6 +121,7 @@ public final class AuroraFactions extends JavaPlugin {
         title = null;
         fileManager.saveAll();
         fileManager = null;
+        claims = null;
         this.plugin = null;
 
     }
@@ -170,5 +175,9 @@ public final class AuroraFactions extends JavaPlugin {
 
     public static GameState getGameState() {
         return gameState;
+    }
+
+    public Claims getClaims() {
+        return claims;
     }
 }

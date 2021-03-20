@@ -1,4 +1,11 @@
-red: 0
-blue: 0
-green: 0
-yellow: 0
+red:
+  unlocks: 0
+  claims:
+    world:
+      - 1235780
+blue:
+  unlocks: 0
+green:
+  unlocks: 0
+yellow:
+  unlocks: 0

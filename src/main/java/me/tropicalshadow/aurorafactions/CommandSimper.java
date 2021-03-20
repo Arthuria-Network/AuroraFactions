@@ -1,11 +1,11 @@
 package me.tropicalshadow.aurorafactions;
 
+import me.tropicalshadow.aurorafactions.claims.Claims;
 import me.tropicalshadow.aurorafactions.gui.ChestGui;
 import me.tropicalshadow.aurorafactions.listener.FactionAbillites;
 import me.tropicalshadow.aurorafactions.mana.ItemManager;
-import me.tropicalshadow.aurorafactions.utils.FactionColours;
-import me.tropicalshadow.aurorafactions.utils.ItemUtils;
-import me.tropicalshadow.aurorafactions.utils.PermissionUtils;
+import me.tropicalshadow.aurorafactions.utils.*;
+import net.kyori.adventure.text.Component;
 import net.luckperms.api.node.types.PermissionNode;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -17,6 +17,7 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -35,7 +36,7 @@ public class CommandSimper implements TabExecutor, Listener {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         boolean isPlayer = sender instanceof Player;
         String cmd = command.getName();
-        if(isPlayer && cmd.equalsIgnoreCase("manaitem")){
+        if(isPlayer && cmd.equalsIgnoreCase("manaitem") && sender.hasPermission("aurorafactions.manaitems.give")){
             if(args.length<=0){
                 sender.sendMessage(ChatColor.RED.toString()+"ERR: /manaitem NAMEOFITEM");
                 return true;
@@ -47,6 +48,30 @@ public class CommandSimper implements TabExecutor, Listener {
 
                 sender.sendMessage(builder.toString());
                 return true;
+            }else if(args[0].equalsIgnoreCase("gui")){
+                ItemManager.ManaItem[] items = ItemManager.ManaItem.values();
+                ChestGui gui = new ChestGui("Mana Items - Creative Menu",6);
+                gui.canClick = false;
+                for (int index=0; index<(6*9);index++){
+                    if(index >= 5*9){
+                        gui.getInventory().setItem(index, new ItemBuilder(Material.GRAY_STAINED_GLASS_PANE).name(" ").build());
+                    }else {
+                        if(index+1<=items.length){
+                            gui.getInventory().setItem(index, items[index].getItem());
+                        }else{
+                            gui.getInventory().setItem(index,  new ItemBuilder(Material.RED_STAINED_GLASS_PANE).name(" ").build());
+                        }
+                    }
+                }
+                gui.setOnClick((event) ->{
+                    if(event.getClickedInventory().getHolder() instanceof Player)return;
+                   if(event.getCurrentItem().getType().equals(Material.GRAY_STAINED_GLASS_PANE))return;
+                   if(event.getCurrentItem().getType().equals(Material.RED_STAINED_GLASS_PANE))return;
+                   event.getWhoClicked().getInventory().addItem(event.getCurrentItem());
+                   event.setCurrentItem(event.getCurrentItem());
+
+                });
+                gui.show((Player)sender);
             }else if(ItemManager.ManaItem.getNames().contains(args[0].toUpperCase())){
                 ItemManager.ManaItem item = ItemManager.ManaItem.getFromName(args[0]);
                 if(item==null){
@@ -148,6 +173,17 @@ public class CommandSimper implements TabExecutor, Listener {
                 return true;
             }
             player.sendMessage(ChatColor.GREEN.toString()+"Successfully given "+item.getItemMeta().getDisplayName());
+
+        }else if(isPlayer && cmd.equalsIgnoreCase("claim")){
+            Player player = ((Player)sender);
+            if(PermissionUtils.getFactionColour(player)==FactionColours.NON)return true;
+
+            if(args.length<1 ){
+                player.sendMessage(Component.text("TODO - Claim for your faction"));
+            }else if(player.hasPermission("aurorafactions.claim.admin") && args[0].equalsIgnoreCase("admin")){
+                player.getInventory().addItem( Claims.adminWand(Claims.AdminWandModes.REMOVE,FactionColours.NON));
+                player.sendMessage(Component.text("You have been praised with the all mighty admin claiming wand"));
+            }
 
         }else if(isPlayer && cmd.equalsIgnoreCase("faction")){
             Player player = ((Player)sender);

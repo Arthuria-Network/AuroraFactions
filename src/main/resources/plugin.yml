@@ -26,10 +26,15 @@ commands:
   resourcepack:
     description: "dealing with resourcepack"
     permission: aurorafactions.resourcepack
+  claim:
+    description: "Claim chunks for your faction"
+    permission: aurorafactions.claim
+
 permissions:
   aurorafactions.factions.op:
     default: op
     children:
+      - aurorafactions.infmana
       - aurorafactions.faction
       - aurorafactions.factions
       - aurorafactions.powercrystal.give
@@ -38,10 +43,16 @@ permissions:
       - aurorafactions.resourcepack
       - aurorafactions.manaitems.give
       - aurorafactions.plugins
+      - aurorafactions.claim.admin
+      - aurorafactions.claim
   aurorafactions.factionchatoverride:
     default: op
     description: "see faction chat of all colours"
   aurorafactions.manaitems.give:
+    default: op
+  aurorafactions.claim:
+    default: op
+  aurorafactions.claim.admin:
     default: op
   aurorafactions.powercrystal.give:
     default: op
@@ -66,5 +77,7 @@ permissions:
     default: true
   aurorafactions.faction:
     default: true
+  aurorafactions.infmana:
+    default: op
   aurorafactions.plugins:
     default: true
