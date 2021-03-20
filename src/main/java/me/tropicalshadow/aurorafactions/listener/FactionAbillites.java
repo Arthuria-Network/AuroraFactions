@@ -93,9 +93,10 @@ public class FactionAbillites implements Listener {
             AuroraFactions.getPlugin().getClaims().removeClaimsFromChunk(event.getPlayer().getChunk());
             event.getPlayer().sendMessage(Component.text("All claims removed from chunk"));
         }else if(mode == Claims.AdminWandModes.SET){
+            AuroraFactions.getPlugin().getClaims().removeClaimsFromChunk(event.getPlayer().getChunk());
             FactionColours factionColours = FactionColours.getFromName(item.getItemMeta().getPersistentDataContainer().get(Claims.factionWandKey,PersistentDataType.STRING));
             AuroraFactions.getPlugin().getClaims().addClaim(new Claims.Claim(factionColours,event.getPlayer().getLocation().getChunk()));
-            event.getPlayer().sendMessage(Component.text("All claims removed from chunk"));
+            event.getPlayer().sendMessage(Component.text("Claimed this chunk"));
 
         }else if(mode == Claims.AdminWandModes.SELECT){
             ChestGui gui = new ChestGui("Admin Claim Wand Selector",1);
