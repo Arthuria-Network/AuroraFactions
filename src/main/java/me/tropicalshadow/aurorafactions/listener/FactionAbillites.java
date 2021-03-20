@@ -84,7 +84,11 @@ public class FactionAbillites implements Listener {
         if(!item.getItemMeta().getPersistentDataContainer().has(Claims.adminWandKey, PersistentDataType.INTEGER))return;
         int value = item.getItemMeta().getPersistentDataContainer().get(Claims.adminWandKey,PersistentDataType.INTEGER);
         if(event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)){
-            event.getPlayer().getInventory().setItemInMainHand(IterateFactionWand(item));
+            ItemStack newItem = IterateFactionWand(item);
+            event.getPlayer().getInventory().setItemInMainHand(newItem);
+            int id = newItem.getItemMeta().getPersistentDataContainer().get(Claims.adminWandKey,PersistentDataType.INTEGER);
+            event.getPlayer().sendMessage(Component.text("Admin Wand changed mode to "+Claims.AdminWandModes.fromID(id).name().toLowerCase()));
+                    
             return;
         }
         if(!event.getAction().equals(Action.LEFT_CLICK_AIR)  && !event.getAction().equals(Action.LEFT_CLICK_BLOCK))return;
