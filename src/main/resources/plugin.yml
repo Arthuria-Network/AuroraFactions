@@ -26,9 +26,12 @@ commands:
   resourcepack:
     description: "dealing with resourcepack"
     permission: aurorafactions.resourcepack
-  claim:
-    description: "Claim chunks for your faction"
-    permission: aurorafactions.claim
+  claimwand:
+    description: "claim wand"
+  wild:
+    aliases:
+      - rtp
+    description: "Randomly teleports player to a location"
 
 permissions:
   aurorafactions.factions.op:
@@ -45,6 +48,12 @@ permissions:
       - aurorafactions.plugins
       - aurorafactions.claim.admin
       - aurorafactions.claim
+  aurorafactions.setrtp:
+    default: op
+    description: "set values todo with rtp"
+  aurorafactions.seechunks:
+    default: op
+    description: "see chunk outlines"
   aurorafactions.factionchatoverride:
     default: op
     description: "see faction chat of all colours"

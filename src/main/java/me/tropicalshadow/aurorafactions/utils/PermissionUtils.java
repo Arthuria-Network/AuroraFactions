@@ -96,6 +96,8 @@ public class PermissionUtils {
     }
     public static boolean isMemberLeader(Player player,FactionColours colour){
         boolean isLeader= false;
+        if(colour.equals(FactionColours.NON))
+            return false;
         Collection<Group> inheritedGroups=null;
         if(player.isOp()) {
             User user = luckperms.getUserManager().loadUser(player.getUniqueId()).join();

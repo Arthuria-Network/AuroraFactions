@@ -1,7 +1,6 @@
 package me.tropicalshadow.aurorafactions.listener;
 
 import me.tropicalshadow.aurorafactions.AuroraFactions;
-import me.tropicalshadow.aurorafactions.object.PowerCrystal;
 import me.tropicalshadow.aurorafactions.utils.FactionColours;
 import me.tropicalshadow.aurorafactions.utils.ItemUtils;
 import me.tropicalshadow.aurorafactions.utils.Logging;
@@ -47,7 +46,7 @@ public class CrystalBlockEvents implements Listener {
     }
     @EventHandler()
     public void onDisplayCrystalPlace(PlayerInteractEvent event) {
-        if(event.getItem() == null )return;
+        if(event.getItem() == null || event.getItem().getType().equals(Material.AIR) )return;
         ItemStack item = event.getItem();
         if (!item.isSimilar(ItemUtils.getDisplayCrystal())) return;
         if (!event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
@@ -73,8 +72,8 @@ public class CrystalBlockEvents implements Listener {
     }
     @EventHandler()
     public void onCrystalPlace(PlayerInteractEvent event) {
-        if (event.getItem() == null || !ItemUtils.isCrystalItem(event.getItem())) return;
         if (!event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+        if (event.getItem() == null  || !ItemUtils.isCrystalItem(event.getItem())) return;
         FactionColours colour = ItemUtils.getFactionColourFromItem(event.getItem());
         if (colour == null || colour.equals(FactionColours.NON)) {
             event.setCancelled(true);

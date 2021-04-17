@@ -1,0 +1,22 @@
+package me.tropicalshadow.aurorafactions.commands.utils;
+
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
+import org.jetbrains.annotations.NotNull;
+
+public class DynamicCommand extends Command {
+
+    ShadowCommand command;
+
+    public DynamicCommand(ShadowCommand command){
+        super(command.getCommandInfo().name());
+        this.command = command;
+        setAliases(command.getAliases());
+    }
+
+    @Override
+    public boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, @NotNull String[] args) {
+        return command.onCommand(sender,this,commandLabel,args);
+    }
+}

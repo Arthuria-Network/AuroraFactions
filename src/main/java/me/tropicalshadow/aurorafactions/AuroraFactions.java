@@ -3,10 +3,10 @@ package me.tropicalshadow.aurorafactions;
 import github.scarsz.discordsrv.DiscordSRV;
 import me.tropicalshadow.aurorafactions.NMS.Title;
 import me.tropicalshadow.aurorafactions.claims.Claims;
-import me.tropicalshadow.aurorafactions.listener.CrystalBlockEvents;
-import me.tropicalshadow.aurorafactions.listener.DeathEvents;
-import me.tropicalshadow.aurorafactions.listener.FactionAbillites;
-import me.tropicalshadow.aurorafactions.listener.GuiListener;
+import me.tropicalshadow.aurorafactions.commands.utils.DynamicCommand;
+import me.tropicalshadow.aurorafactions.commands.utils.ShadowCommand;
+import me.tropicalshadow.aurorafactions.commands.utils.ShadowCommandInfo;
+import me.tropicalshadow.aurorafactions.listener.*;
 import me.tropicalshadow.aurorafactions.chat.ChannelManger;
 import me.tropicalshadow.aurorafactions.chat.ChatChannel;
 import me.tropicalshadow.aurorafactions.mana.DisplayMana;
@@ -18,12 +18,17 @@ import me.tropicalshadow.aurorafactions.utils.FileManager;
 import me.tropicalshadow.aurorafactions.utils.Logging;
 import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandMap;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.HandlerList;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.reflections.Reflections;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 public final class AuroraFactions extends JavaPlugin {
@@ -34,8 +39,8 @@ public final class AuroraFactions extends JavaPlugin {
     private CrystalBlockEvents crystalBlockEvents;
     private boolean isDiscordSRVHooked = false;
     private FactionAbillites factionAbillites;
+    private FactionClaimProtection factionClaimProtection;
     private ChannelManger channelManger;
-    private CommandSimper commandSimper;
     private GuiListener guiListener;
     private ChatChannel chatChannel;
     private DisplayMana displayMana;
@@ -61,7 +66,6 @@ public final class AuroraFactions extends JavaPlugin {
         channelManger = new ChannelManger();
         chatChannel = new ChatChannel();
         guiListener = new GuiListener();
-        commandSimper = new CommandSimper();
         setupPermissions();
         crystalBlockEvents = new CrystalBlockEvents();
         factionAbillites = new FactionAbillites();
@@ -69,19 +73,20 @@ public final class AuroraFactions extends JavaPlugin {
         displayMana = new DisplayMana();
         itemManager = new ItemManager();
         deathEvents = new DeathEvents();
+        factionClaimProtection = new FactionClaimProtection();
 
         getServer().getPluginManager().registerEvents(chatChannel,this);
         getServer().getPluginManager().registerEvents(guiListener,this);
         getServer().getPluginManager().registerEvents(crystalBlockEvents,this);
+        getServer().getPluginManager().registerEvents(factionClaimProtection,this);
         getServer().getPluginManager().registerEvents(factionAbillites,this);
         getServer().getPluginManager().registerEvents(displayMana,this);
         getServer().getPluginManager().registerEvents(itemManager,this);
-        getServer().getPluginManager().registerEvents(commandSimper,this);
         getServer().getPluginManager().registerEvents(deathEvents,this);
 
         checkForDiscordSrvThenSubscribe();
 
-        registerCommands("factions","faction","powercrystal","manaitem","plugins","resourcepack","claim");
+        registerCommands();
         if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null){
             FactionTags ppapitags = new FactionTags();
             ppapitags.register();
@@ -97,15 +102,40 @@ public final class AuroraFactions extends JavaPlugin {
         return GameState.fromID(gameStateID);
     }
 
-    public void registerCommands(String... commands){
-        for (String command : commands) {
-            getCommand(command).setExecutor(commandSimper);
-            getCommand(command).setTabCompleter(commandSimper);
+    public boolean addCommandToSystem(ShadowCommand command){
+        return Bukkit.getCommandMap().register(command.getCommandInfo().name(), new DynamicCommand(command));
+    }
+    
+    public void registerCommands(){
+        String packageName = getClass().getPackage().getName();
+        for (Class<? extends ShadowCommand> clazz : new Reflections(packageName+".commands").getSubTypesOf(ShadowCommand.class)){
+            try{
+                ShadowCommand cmd = clazz.getDeclaredConstructor().newInstance();
+                String cmdName = cmd.getCommandInfo().name();
+                if(cmdName.isEmpty())continue;
+                PluginCommand command = getCommand(cmdName);
+                if(command == null){
+                    Logging.info("Injecting Command: "+cmdName);
+                    addCommandToSystem(cmd);
+                    command = getCommand(cmdName);
+                    if(command==null){
+                        Logging.info("Command "+cmdName+" failed to inject");
+                        continue;
+                    }
+                }
+                command.setExecutor(cmd);
+                command.setTabCompleter(cmd);
+                if(cmd.getCommandInfo().permission().equals(""))
+                    command.setPermission(null);
+                else
+                    command.setPermission(cmd.getCommandInfo().permission());
+                command.setDescription(cmd.getCommandInfo().description());
+                command.setUsage(cmd.getCommandInfo().usage());
+                command.setAliases(cmd.getAliases());
+            }catch(Exception e){
+                e.printStackTrace();
+            }
         }
-        ArrayList<String> string = new ArrayList<>();
-        string.add("pl");
-        getCommand("plugins").setAliases(string);
-
     }
 
     @Override
@@ -117,7 +147,6 @@ public final class AuroraFactions extends JavaPlugin {
         factionAbillites = null;
         crystalBlockEvents = null;
         guiListener = null;
-        commandSimper = null;
         title = null;
         fileManager.saveAll();
         fileManager = null;

@@ -1,11 +1,13 @@
 package me.tropicalshadow.aurorafactions.listener;
 
 import me.tropicalshadow.aurorafactions.AuroraFactions;
+import me.tropicalshadow.aurorafactions.claims.Claim;
 import me.tropicalshadow.aurorafactions.claims.Claims;
 import me.tropicalshadow.aurorafactions.gui.ChestGui;
 import me.tropicalshadow.aurorafactions.utils.*;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,8 +18,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class FactionAbillites implements Listener {
 
@@ -63,7 +67,7 @@ public class FactionAbillites implements Listener {
             event.setCancelled(true);
         }else if(Colour.equals(FactionColours.GREEN) && event.getCause().equals(EntityDamageEvent.DamageCause.FALL)){
             event.setCancelled(true);
-        }else if(Colour.equals(FactionColours.YELLOW) && (event.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE) || event.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION))){
+        }else if(Colour.equals(FactionColours.YELLOW) && (event.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE))){
             event.setCancelled(true);
         }
     }
@@ -80,7 +84,8 @@ public class FactionAbillites implements Listener {
     @EventHandler()
     public void claimingWand(PlayerInteractEvent event){
         if(event.getItem() == null)return;
-        ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
+        ItemStack item = event.getItem();
+        if(item.getType().equals(Material.AIR))return;
         if(!item.getItemMeta().getPersistentDataContainer().has(Claims.adminWandKey, PersistentDataType.INTEGER))return;
         int value = item.getItemMeta().getPersistentDataContainer().get(Claims.adminWandKey,PersistentDataType.INTEGER);
         if(event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)){
@@ -99,8 +104,29 @@ public class FactionAbillites implements Listener {
         }else if(mode == Claims.AdminWandModes.SET){
             AuroraFactions.getPlugin().getClaims().removeClaimsFromChunk(event.getPlayer().getChunk());
             FactionColours factionColours = FactionColours.getFromName(item.getItemMeta().getPersistentDataContainer().get(Claims.factionWandKey,PersistentDataType.STRING));
-            AuroraFactions.getPlugin().getClaims().addClaim(new Claims.Claim(factionColours,event.getPlayer().getLocation().getChunk()));
+            if(factionColours.equals(FactionColours.NON)){
+                event.getPlayer().sendMessage("The ADMIN tool is selecting no faction");
+                return;
+            }
+            AuroraFactions.getPlugin().getClaims().addClaim(new Claim(factionColours,event.getPlayer().getLocation().getChunk()));
             event.getPlayer().sendMessage(Component.text("Claimed this chunk"));
+
+    }else if(mode == Claims.AdminWandModes.INFO){
+            Location loc;
+            loc = event.getInteractionPoint();
+            if(loc==null)
+                loc = event.getPlayer().getLocation();
+            FactionColours factionClaimed = Claims.isChunkClaimed(loc.getChunk());
+            if(!factionClaimed.equals(FactionColours.NON)){
+                event.getPlayer().sendMessage(Component.text("This chunk is claimed by "+factionClaimed.formatedName));
+                ArrayList<String> trusted = AuroraFactions.getPlugin().getClaims().getTrusted(factionClaimed);
+                Component comp = Component.text("--------trusted--------\n");
+                for (String s : trusted) {
+                    comp = comp.append(Component.text(s+"\n"));
+                }
+                event.getPlayer().sendMessage(comp);
+            }else
+                event.getPlayer().sendMessage(Component.text("This chunk is not claimed"));
 
         }else if(mode == Claims.AdminWandModes.SELECT){
             ChestGui gui = new ChestGui("Admin Claim Wand Selector",1);

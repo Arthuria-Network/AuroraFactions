@@ -3,24 +3,26 @@ package me.tropicalshadow.aurorafactions.claims;
 import me.tropicalshadow.aurorafactions.AuroraFactions;
 import me.tropicalshadow.aurorafactions.utils.FactionColours;
 import me.tropicalshadow.aurorafactions.utils.Logging;
+import me.tropicalshadow.aurorafactions.utils.PermissionUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Claims {
     //TODO - Check faction and stop interaction if you are not member
     private static AuroraFactions plugin;
     private final List<Claim> factionClaims = new ArrayList<>();
+    private final Map<FactionColours,ArrayList<UUID>> trustedInClaims = new HashMap<>();
     public static NamespacedKey adminWandKey = null;
     public static NamespacedKey factionWandKey = null;
 
@@ -34,7 +36,8 @@ public class Claims {
     public static enum AdminWandModes{
         REMOVE(0, ChatColor.RED + "Left click to remove claim",ChatColor.AQUA+"Right click to change mode"),
         SELECT(1,ChatColor.BLUE+"Left click to select a faction",ChatColor.AQUA+"Right click to change mode"),
-        SET(2, ChatColor.GREEN+"Left click to set chunk to %faction% faction",ChatColor.AQUA+"Right click to change mode");
+        SET(2, ChatColor.GREEN+"Left click to set chunk to %faction% faction",ChatColor.AQUA+"Right click to change mode"),
+        INFO(3, ChatColor.GREEN+"Left click to get info about chunk",ChatColor.AQUA+"Right click to change mode");
 
         private int id;
         private List<Component> lore;
@@ -79,48 +82,47 @@ public class Claims {
     }
 
     public void renderLoadedChunks(){
-        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin,()->{
-            factionClaims.forEach(claim -> {
-                //claim.chunk
-                List<Entity> players = Arrays.stream(claim.chunk.getEntities()).filter((e)->(e instanceof Player)).collect(Collectors.toList());
-                for (Entity entity : players) {
-                    if(!(entity instanceof Player))continue;
-                    Player player = ((Player) entity).getPlayer();
-                    Chunk chunk = claim.chunk;
-                    int minX = chunk.getX()*16;
-                    int minZ = chunk.getZ()*16;
-                    int minY = player.getLocation().getBlockY();
-                    Color color = Color.BLACK;
-                    switch (claim.faction.colour){
-                        case RED:
-                            color = Color.RED;
-                            break;
-                        case BLUE:
-                            color = Color.BLUE;
-                            break;
-                        case YELLOW:
-                            color = Color.YELLOW;
-                            break;
-                        case GREEN:
-                            color = Color.GREEN;
-                            break;
-                        default:
-                            color = Color.WHITE;
-                            break;
-                    }
-                    Particle.DustOptions dustOptions = new Particle.DustOptions(color, 5);
-                    int count = 4;
-                    for (int y = minY; y<minY+10;y++) {
-                        player.spawnParticle(Particle.REDSTONE, minX, y, minZ, count, dustOptions);
-                        player.spawnParticle(Particle.REDSTONE, 16 + minX, y, minZ, count, dustOptions);
-                        player.spawnParticle(Particle.REDSTONE, minX, y, 16 + minZ, count, dustOptions);
-                        player.spawnParticle(Particle.REDSTONE, 16 + minX, y, minZ + 16, count, dustOptions);
-                    }
+        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin,()-> factionClaims.forEach(claim -> {
+            //claim.chunk
+            Color color = Color.BLACK;
+            switch (claim.faction.colour){
+                case RED:
+                    color = Color.RED;
+                    break;
+                case BLUE:
+                    color = Color.BLUE;
+                    break;
+                case YELLOW:
+                    color = Color.YELLOW;
+                    break;
+                case GREEN:
+                    color = Color.GREEN;
+                    break;
+                default:
+                    color = Color.WHITE;
+                    break;
+            }
+            Chunk chunk = claim.chunk;
+            int minX = chunk.getX()*16;
+            int minZ = chunk.getZ()*16;
+            Particle.DustOptions dustOptions = new Particle.DustOptions(color, 5);
 
+            Arrays.stream(claim.chunk.getEntities()).filter((e)->(e instanceof Player)).forEach((entity)->{
+                Player player = ((Player) entity).getPlayer();
+                if(player == null)return;
+                if(!player.hasPermission("aurorafactions.seechunks"))return;
+                int minY = player.getLocation().getBlockY();
+
+                int count = 4;
+                for (int y = minY; y<minY+10;y++) {
+                    player.spawnParticle(Particle.REDSTONE, minX, y, minZ, count, dustOptions);
+                    player.spawnParticle(Particle.REDSTONE, 16 + minX, y, minZ, count, dustOptions);
+                    player.spawnParticle(Particle.REDSTONE, minX, y, 16 + minZ, count, dustOptions);
+                    player.spawnParticle(Particle.REDSTONE, 16 + minX, y, minZ + 16, count, dustOptions);
                 }
-
             });
-        },10,40);
+
+        }),10,40);
     }
 
     public void removeClaimsFromChunk(Chunk chunk){
@@ -133,8 +135,30 @@ public class Claims {
         if(toRemove!=null){
             factionClaims.remove(toRemove);
         }
+        saveFactionClaims();
     }
 
+    public void trustMember(FactionColours faction, Player player){
+        ArrayList<UUID> list = trustedInClaims.getOrDefault(faction, new ArrayList<>());
+        list.add(player.getUniqueId());
+        trustedInClaims.put(faction,list);
+        saveFactionClaims();
+    }
+    public boolean isTrusted(FactionColours faction, Player player){
+        return PermissionUtils.isMemberLeader(player,faction) || trustedInClaims.getOrDefault(faction, new ArrayList<>()).contains(player.getUniqueId());
+    }
+    public ArrayList<String> getTrusted(FactionColours faction){
+        ArrayList<String> arr = new ArrayList<>();
+        trustedInClaims.get(faction).forEach(stringId->{
+            Player player = Bukkit.getPlayer(stringId);
+
+            if(player!=null)
+                arr.add(player.getName());
+            else
+                arr.add(Bukkit.getOfflinePlayer(stringId).getName());
+        });
+        return arr;
+    }
     public void addClaim(Claim claim){
         if(factionClaims.contains(claim))return;
         factionClaims.add(claim);
@@ -149,6 +173,8 @@ public class Claims {
             if(!file.exists()){
                 plugin.saveResource("factions.yml",true);
             }
+            factionClaims.clear();
+            trustedInClaims.clear();
             YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
             for (FactionColours value : FactionColours.values()) {
                 if(value!=FactionColours.NON){
@@ -163,6 +189,7 @@ public class Claims {
                                 int locX = (int) chunkLong;
                                 int locY = (int) (chunkLong >> 32);
                                 world.getChunkAtAsync(locX,locY,false,(tempChunk)->{
+
                                     Claim tempClaim = new Claim(value,tempChunk);
                                     if(!factionClaims.contains(tempClaim)){
                                         factionClaims.add(tempClaim);
@@ -172,6 +199,13 @@ public class Claims {
                             }
 
                         });
+                    }
+                    if(yaml.contains(faction+".trusted")){
+                        ArrayList<UUID> tempTrusted = new ArrayList<>();
+                        yaml.getStringList(faction+".trusted").forEach(stringId->{
+                            tempTrusted.add(UUID.fromString(stringId));
+                        });
+                        trustedInClaims.put(value,tempTrusted);
                     }
                 }
             }
@@ -208,30 +242,27 @@ public class Claims {
                     yaml.set(faction.name().toLowerCase()+".claims."+worldName,locs);
                 });
             });
+            trustedInClaims.forEach((faction,trusted)->{
+                List<String> list = new ArrayList<>();
+                trusted.forEach(uuid -> list.add(uuid.toString()));
+                yaml.set(faction.name().toLowerCase()+".trusted",list);
+            });
             yaml.save(file);
             Logging.info("Claims saved");
         }catch(Exception e){
             e.printStackTrace();
         }
     }
-    public static class Claim{
-        FactionColours faction;
-        Chunk chunk;
 
-        public Claim(FactionColours faction, World world, int x, int y){
-            this.faction = faction;
-            chunk = world.getChunkAt(x,y);
-        }
-        public Claim(FactionColours faction, Chunk chunk){
-            this.faction = faction;
-            this.chunk = chunk;
-        }
-        public FactionColours getFaction() {
-            return faction;
-        }
-
-        public Chunk getChunk() {
-            return chunk;
-        }
+    public static FactionColours isChunkClaimed(Chunk chunk){
+        AtomicReference<FactionColours> factionColours = new AtomicReference<>(FactionColours.NON);
+        AuroraFactions.getPlugin().getClaims().factionClaims.forEach(claim -> {
+            if(claim.chunk.equals(chunk)){
+                factionColours.set(claim.faction);
+            }
+        });
+        return factionColours.get();
     }
+
+
 }
