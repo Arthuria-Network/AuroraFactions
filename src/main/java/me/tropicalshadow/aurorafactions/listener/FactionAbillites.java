@@ -108,6 +108,10 @@ public class FactionAbillites implements Listener {
                 event.getPlayer().sendMessage("The ADMIN tool is selecting no faction");
                 return;
             }
+            if(AuroraFactions.getPlugin().getClaims().isChunkClaimed(event.getPlayer().getChunk(),factionColours)){
+                event.getPlayer().sendMessage(Component.text("Chunk already claimed"));
+                return;
+            }
             AuroraFactions.getPlugin().getClaims().addClaim(new Claim(factionColours,event.getPlayer().getLocation().getChunk()));
             event.getPlayer().sendMessage(Component.text("Claimed this chunk"));
 

@@ -14,7 +14,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -33,7 +32,16 @@ public class Claims {
         factionWandKey = new NamespacedKey(AuroraFactions.getPlugin(), "factionid");
 
     }
-    public static enum AdminWandModes{
+
+    public Map<FactionColours, ArrayList<UUID>> getTrustedInClaims() {
+        return trustedInClaims;
+    }
+
+    public List<Claim> getFactionClaims() {
+        return factionClaims;
+    }
+
+    public enum AdminWandModes{
         REMOVE(0, ChatColor.RED + "Left click to remove claim",ChatColor.AQUA+"Right click to change mode"),
         SELECT(1,ChatColor.BLUE+"Left click to select a faction",ChatColor.AQUA+"Right click to change mode"),
         SET(2, ChatColor.GREEN+"Left click to set chunk to %faction% faction",ChatColor.AQUA+"Right click to change mode"),
@@ -68,6 +76,8 @@ public class Claims {
             return lore;
         }
     }
+
+
 
     public static ItemStack adminWand(AdminWandModes adminWandModes, FactionColours factionColours){
         ItemStack item = new ItemStack(Material.NETHERITE_HOE);
@@ -140,6 +150,7 @@ public class Claims {
 
     public void trustMember(FactionColours faction, Player player){
         ArrayList<UUID> list = trustedInClaims.getOrDefault(faction, new ArrayList<>());
+        if(list.contains(player.getUniqueId()))return;
         list.add(player.getUniqueId());
         trustedInClaims.put(faction,list);
         saveFactionClaims();
@@ -185,11 +196,10 @@ public class Claims {
                         worldClaims.keySet().forEach((worldName)->{
                             World world = Bukkit.getWorld(worldName);
                             assert world != null;
-                            for (long chunkLong :(List<Long>) worldClaims.get(worldName)){
+                            for (long chunkLong :(List<Long>) worldClaims.getOrDefault(worldName,new ArrayList<>())){
                                 int locX = (int) chunkLong;
                                 int locY = (int) (chunkLong >> 32);
                                 world.getChunkAtAsync(locX,locY,false,(tempChunk)->{
-
                                     Claim tempClaim = new Claim(value,tempChunk);
                                     if(!factionClaims.contains(tempClaim)){
                                         factionClaims.add(tempClaim);
@@ -256,13 +266,16 @@ public class Claims {
 
     public static FactionColours isChunkClaimed(Chunk chunk){
         AtomicReference<FactionColours> factionColours = new AtomicReference<>(FactionColours.NON);
-        AuroraFactions.getPlugin().getClaims().factionClaims.forEach(claim -> {
-            if(claim.chunk.equals(chunk)){
+        AuroraFactions.getPlugin().getClaims().getFactionClaims().forEach(claim -> {
+            if(claim.chunk.getWorld() == chunk.getWorld() && claim.chunk.getChunkKey() == chunk.getChunkKey()){
                 factionColours.set(claim.faction);
             }
         });
         return factionColours.get();
     }
 
+    public boolean isChunkClaimed(Chunk chunk, FactionColours factionColour){
+        return isChunkClaimed(chunk) == factionColour;
+    }
 
 }

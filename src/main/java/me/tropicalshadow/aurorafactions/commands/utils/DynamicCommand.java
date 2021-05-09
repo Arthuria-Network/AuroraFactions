@@ -2,7 +2,6 @@ package me.tropicalshadow.aurorafactions.commands.utils;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.PluginCommand;
 import org.jetbrains.annotations.NotNull;
 
 public class DynamicCommand extends Command {
